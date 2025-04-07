@@ -1,4 +1,6 @@
 
+using Microsoft.EntityFrameworkCore;
+
 namespace MarketApp;
 public class MarketApp
 {
@@ -7,6 +9,11 @@ public class MarketApp
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+
+        ConfigurationManager configuration = builder.Configuration;
+        builder.Services.AddDbContext<ApplicationDatabaseContext>(
+            options => options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
