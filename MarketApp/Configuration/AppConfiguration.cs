@@ -1,43 +1,63 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Internal;
 using Unity.Interception.Utilities;
 
 namespace MarketApp.Configuration
 {
     public class AppConfiguration
     {
-        public void InitContainer()
+        public void InitContainer(IServiceCollection container)
         {
-            var container = new Dictionary<Type, Type>();
 
             var assemblies = Assembly.GetExecutingAssembly().GetTypes();
-            AppendComponents(container, [.. assemblies.Where(t => t.IsClass && t.GetCustomAttributes(typeof(Bean), true).Length > 0)]);
-            ;
+            RegisterServices(container, [.. assemblies.Where(t => t.IsClass && t.GetCustomAttributes(typeof(Bean), true).Length > 0)]);
+
         }
 
-        private void AppendComponents(Dictionary<Type, Type> container, List<Type> types)
+        private void RegisterServices(IServiceCollection container, List<Type> types)
         {
             types.ForEach(type =>
             {
                 type.GetInterfaces()
                 .Where(t => t.GetCustomAttributes(typeof(Component), true).Length > 0)
                 .ToList()
-                .ForEach(i =>
+                .ForEach(type =>
                 {
-                    try
-                    {
-                        container.Add(i, type);
-                    }
-                    catch (System.Exception)
-                    {
-                        throw new System.Exception("Can't register component " + i.FullName);
-                    }
-                });
-            }
+                    type
+                    .GetInterfaces()
+                    .Where(i => i.GetCustomAttributes(typeof(Component), true).Length > 0)
+                    .ToList().ForEach(i => RegisterService(container, type, i));
+                }
             );
+            });
+        }
+
+        private void RegisterService(IServiceCollection container, Type implementation, Type service)
+        {
+            Component? component = service.GetCustomAttribute<Component>();
+            if (component != null)
+            {
+                switch  (component.GetScope())
+                {
+                    case Scope.TRANSIENT:
+                        container.AddTransient(service, implementation);
+                        break;
+                    case Scope.SINGLETON:
+                        container.AddSingleton(service, implementation);
+                        break;
+                    case Scope.SCOPED:
+                        container.AddScoped(service, implementation);
+                        break;
+                    default:
+                        throw new System.ArgumentException("Invalid components scope " + service.Name);
+                }
+            }
         }
     }
 
