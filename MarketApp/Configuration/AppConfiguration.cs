@@ -28,7 +28,7 @@ namespace MarketApp.Configuration
             types.ForEach(type =>
                 type.GetInterfaces()
                 .Where(t =>
-                    t.GetCustomAttributes(typeof(Component), false).Length > 0
+                    t.GetCustomAttributes(typeof(Component), true).Length > 0
                     )
                 .ToList()
                 .ForEach(service => RegisterService(container, type, service))

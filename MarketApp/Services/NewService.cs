@@ -9,9 +9,11 @@ namespace MarketApp.Services
     [Bean]
     public class NewService : INewService
     {
+        public static readonly String message = "Hello";
+
         public string GetMessage()
         {
-            return "Hello";
+            return message;
         }
     }
 }
