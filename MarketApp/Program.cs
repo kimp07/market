@@ -1,4 +1,5 @@
 
+using MarketApp.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketApp;
@@ -14,11 +15,13 @@ public class MarketApp
         builder.Services.AddDbContext<ApplicationDatabaseContext>(
             options => options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
+        AppConfiguration.ConfigureDiContainer(builder.Services);
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
 
         var app = builder.Build();
 

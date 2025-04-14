@@ -12,7 +12,10 @@ namespace MarketApp.Configuration
 {
     public class AppConfiguration
     {
-        public void InitContainer(IServiceCollection container)
+
+        private AppConfiguration() { }
+
+        private void InitContainer(IServiceCollection container)
         {
 
             var assemblies = Assembly.GetExecutingAssembly().GetTypes();
@@ -23,19 +26,14 @@ namespace MarketApp.Configuration
         private void RegisterServices(IServiceCollection container, List<Type> types)
         {
             types.ForEach(type =>
-            {
                 type.GetInterfaces()
-                .Where(t => t.GetCustomAttributes(typeof(Component), true).Length > 0)
+                .Where(t =>
+                    t.GetCustomAttributes(typeof(Component), false).Length > 0
+                    )
                 .ToList()
-                .ForEach(type =>
-                {
-                    type
-                    .GetInterfaces()
-                    .Where(i => i.GetCustomAttributes(typeof(Component), true).Length > 0)
-                    .ToList().ForEach(i => RegisterService(container, type, i));
-                }
+                .ForEach(service => RegisterService(container, type, service))
             );
-            });
+
         }
 
         private void RegisterService(IServiceCollection container, Type implementation, Type service)
@@ -43,7 +41,7 @@ namespace MarketApp.Configuration
             Component? component = service.GetCustomAttribute<Component>();
             if (component != null)
             {
-                switch  (component.GetScope())
+                switch (component.GetScope())
                 {
                     case Scope.TRANSIENT:
                         container.AddTransient(service, implementation);
@@ -59,6 +57,13 @@ namespace MarketApp.Configuration
                 }
             }
         }
+
+        public static void ConfigureDiContainer(IServiceCollection container)
+        {
+            AppConfiguration configuration = new AppConfiguration();
+            configuration.InitContainer(container);
+        }
+
     }
 
 }

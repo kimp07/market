@@ -1,3 +1,4 @@
+using MarketApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketApp.Controllers;
@@ -12,10 +13,12 @@ public class WeatherForecastController : ControllerBase
     };
 
     private readonly ILogger<WeatherForecastController> _logger;
+    private readonly INewService _newService;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, INewService newService)
     {
         _logger = logger;
+        _newService = newService;
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
